@@ -2,6 +2,7 @@
 #include "Sensors.h"
 #include <Wire.h>
 
+// this is the setup
 void setup() {
   Wire.begin();
   Serial.begin(9600);
