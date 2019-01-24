@@ -18,47 +18,61 @@ Sensors::Sensors(int SdaPin, int SclPin)
   this->SclPin = SclPin;
 }
 
-int Sensors::XAccel() 
+float Sensors::XAccel() 
 {
-  return analogRead(ACCEL_PIN_X);
+  float voltage = Sensors::ADCCountToVoltage(analogRead(ACCEL_PIN_X));
+  return VoltageToG(voltage);
 }
 
-int Sensors::YAccel() 
+float Sensors::YAccel() 
 {
-  return analogRead(ACCEL_PIN_Y);
+  float voltage = Sensors::ADCCountToVoltage(analogRead(ACCEL_PIN_Y));
+  return VoltageToG(voltage);
 }
 
-int Sensors::ZAccel() 
+float Sensors::ZAccel() 
 {
-  return analogRead(ACCEL_PIN_Z);
+  float voltage = Sensors::ADCCountToVoltage(analogRead(ACCEL_PIN_Z));
+  return VoltageToG(voltage);
 }
 
-int Sensors::Altitude()
+float Sensors::Altitude()
 {
   return Altimeter.getAltitude();
 }
 
-int Sensors::Pressure()
+float Sensors::Pressure()
 {
   return Altimeter.getPressure();
 }
 
 /**
+ * Sets the sealevel pressure to the current pressure to give acurate
+ * relative altitudes, also initalizes the Altimter object
+ * 
  * @param {float} samplesToTake
  */
 void Sensors::InitAltimeter(float samplesToTake)
 {
+  if(!Altimeter.begin())
+  {
+    Serial.println("fail");
+    delay(1000000);
+  }
+
   float totalPressure = 0;
   float finalPressure = 0;
+  delay(500);
   
   for(int i = 0; i < samplesToTake; i++)
   {
     totalPressure += Altimeter.getPressure();
+    delay(500);
   }
 
   finalPressure = totalPressure / samplesToTake;
 
-  Serial.println("Calibrated Sea Level Pressure: " + finalPressure + "Pa");
+  Serial.println("Calibrated Sea Level Pressure: " + String(finalPressure) + "Pa");
 
   Altimeter.setSeaPressure(finalPressure); 
 }
@@ -67,8 +81,37 @@ boolean Sensors::up()
 {
   //TODO:
   // determine how to find up
+  return false;
 }
 
+float Sensors::Direction()
+{
+  // TODO
+  // determine direction calculation
+  return 0.0;
+}
+
+float Sensors::ADCCountToVoltage(float count)
+{
+  float systemVoltage = 3.3;
+  float resolution = 1023;
+  float voltage;
+
+  voltage = count * (systemVoltage / resolution);
+
+  return voltage;
+
+}
+
+float Sensors::VoltageToG(float voltage)
+{
+  float gForces;
+
+  gForces = (1.95 * voltage) - 3.0;
+
+  return gForces;
+
+}
 
 
 

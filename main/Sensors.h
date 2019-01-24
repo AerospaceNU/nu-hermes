@@ -1,16 +1,23 @@
+#ifndef SENSORS_H
+#define SENSORS_H
+
 class Sensors {
   public: 
   Sensors(int SdaPin, int SclPin);
-  int XAccel();
-  int YAccel();
-  int ZAccel();
-  int Altitude();
-  int Pressure();
+  float XAccel();
+  float YAccel();
+  float ZAccel();
+  float Altitude();
+  float Pressure();
+  float Direction();
   boolean up();
-  void InitAltimeter(int samplesToTake);
+  void InitAltimeter(float samplesToTake);
   
   private:
   int SdaPin;
   int SclPin;
+  float ADCCountToVoltage(float count);
+  float VoltageToG(float voltage);
 };
 
+#endif SENSORS_H
