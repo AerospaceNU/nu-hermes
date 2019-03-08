@@ -16,7 +16,7 @@
 #define DIR_RIGHT 10
 #define STEP_RIGHT 11
 
+
 void InitMotors();
-void RotateStepper(bool, int);
 
 #endif

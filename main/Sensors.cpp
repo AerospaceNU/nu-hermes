@@ -6,8 +6,8 @@ const int ACCEL_PIN_X = A0;
 const int ACCEL_PIN_Y = A1;
 const int ACCEL_PIN_Z = A2;
 
-const int SCL_PIN = 19;
-const int SDA_PIN = 18;
+const int SCL_PIN = 18;
+const int SDA_PIN = 19;
 
 Adafruit_MPL3115A2 Altimeter = Adafruit_MPL3115A2();
 
