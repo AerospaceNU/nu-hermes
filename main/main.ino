@@ -1,9 +1,8 @@
-#include <Adafruit_MPL3115A2.h>
-#include "Sensors.h"
-#include <Wire.h>
-
 #include <BasicStepperDriver.h>
 #include <DRV8834.h>
+#include <Arduino.h>
+#include <Wire.h>
+#include "Sensors.h"
 
 #define MOTOR_STEPS 200
 #define RPM 240
@@ -13,41 +12,94 @@
 #define DIR_LEFT 8
 #define STEP_LEFT 9
 
-#define DIR_RIGHT 6
-#define STEP_RIGHT 7
+#define DIR_RIGHT 10
+#define STEP_RIGHT 11
 
 #define NICROME 5
+#define NICROME_DELAY 10000
 
-int state = 0;
-int launchTime = 0;
-float previousAltitude = 0;
-float launchAltitude = 0;
+#define TEST_PIN_ONE 20
+#define TEST_PIN_TWO 21
 
 DRV8834 stepperRight(MOTOR_STEPS, DIR_RIGHT, STEP_RIGHT);
 DRV8834 stepperLeft(MOTOR_STEPS, DIR_LEFT, STEP_LEFT);
 
 Sensors board(19, 18);
 
+int state = 0;
+int launchTime = 0;
+float previousAltitude = 0;
+float launchAltitude = 0;
+
 // this is the setup
 void setup() 
 {
-  pinMode(13, OUTPUT);
-  Wire.begin();
   Serial.begin(9600);
-  delay(3000);
-  Serial.println("Serial Init");
-  //analogReference(); // Sets the refrence for the ADC to the external source on pin AREF (on the inside of pin 23)
+  Serial.println("Begining");
+  pinModeInitAll();
+  analogReference(EXTERNAL); // Sets the refrence for the ADC to the external source on pin AREF (on the inside of pin 23)
   Serial.println("Running");
   delay(1000);
   digitalWrite(13, HIGH);
-  //board.InitAltimeter(10);
+  // Starts up the altimiter and sets the current altitude as ground level
+  board.InitAltimeter(10);
   digitalWrite(13, LOW);
+}
 
-  //stepperRight.begin(RPM);
-  stepperLeft.begin(RPM);
+void pinModeInitAll()
+{
+  pinMode(13, OUTPUT);
+  pinMode(NICROME, OUTPUT);
+  pinMode(TEST_PIN_ONE, OUTPUT);
+  pinMode(TEST_PIN_TWO, OUTPUT);
+}
 
-  stepperLeft.setMicrostep(1); 
-  //stepperRight.setMicrostep(1); 
+void loop() 
+{
+
+  switch (state)
+  {
+    case 0:
+      detectLaunch();
+      break;
+    
+    case 1:
+      detectGround();
+      break;
+
+    case 2:
+      breakNicrome();
+      break;
+
+    case 3:
+      roverMotion();
+      break;
+
+    default:
+      break;
+  }
+
+  
+  Serial.println(board.Altitude());
+  Serial.println(board.XAccel());
+  Serial.println(board.YAccel());
+  Serial.println(board.ZAccel());
+  Serial.println("TEST");
+  delay(500);
+}
+
+// Setperate Rover using nicrome
+void breakNicrome()
+{
+  digitalWrite(NICROME, HIGH);
+  Serial.println("Nicrome set to release");
+  delay(NICROME_DELAY / 2);
+  Serial.println("Nicrome in progress");
+  delay(NICROME_DELAY / 2);
+  Serial.println("Nicrome Completed");  
+  digitalWrite(NICROME, LOW);
+  delay(5000);
+  state = 3;
 }
 
 void detectLaunch()
@@ -64,24 +116,42 @@ void detectLaunch()
   return;
 }
 
-void flipRover()
+void roverMotion()
 {
-  stepperLeft.move(7600);
-  delay(1000);
-  stepperLeft.move(-7600);
-  delay(1000);
+  float x, y, z;
+  x = board.XAccel();
+  y = board.YAccel();
+  z = board.ZAccel();
+  // 1 = x, 2 = y, 3 = z
+  int controlAccel = 0;
 
-  stepperRight.move(7600);
-  delay(1000);
-  stepperRight.move(-7600);
-  state = 3;
-  return;
+  // two should be close to 0 and 1 close to 1
+  // this will determine which orentation the rover is in
+
+  if (x > 0.75 || x < -0.75)
+  {
+    controlAccel = x;
+  } 
+  else if (y > 0.75 || y < -0.75)
+  {
+    controlAccel = y;
+  } 
+  else if (z > 0.75 || z < -0.75)
+  {
+    controlAccel = z;
+  }
+ 
+}
+
+void flipRover(int side)
+{
+  
 }
 
 void detectGround()
 {
   int currentTime = millis();
-  while ((currentTime - launchTime) < 87000)
+  while ((currentTime - launchTime) < 120000)
   {
     delay(1000);
     currentTime = millis();
@@ -89,107 +159,16 @@ void detectGround()
 
   float currentAltitude = board.Altitude();
 
-  if (currentAltitude < 40)
+  if (currentAltitude < 80)
   {
     delay(8000);
     state = 2;
   }
-  
-  
   return;
 }
 
-void loop() 
-{
-  if (state == 1)
-  {
-    detectGround();
-  }
-  else if (state == 0)
-  {
-    detectLaunch();
-  }
-  else if (state == 2)
-  {
-    setNicrome();
-    delay (1000);
-    flipRover();
-    delay (1000);
-    flipRover();
-  }
-  else if (state == 3)
-  {
-    stepperLeft.move(7600);
-    while (true)
-    {
-      
-    }
-  }
 
-  
-
-  Serial.println("TEST");
-  delay(500);
-  Serial.println("TEST");
-
-  
-  
-//  Serial.println("X Accel: " + String(board.XAccel()));
-//  Serial.println("Y Accel: " + String(board.YAccel()));
-//  Serial.println("Z Accel: " + String(board.ZAccel()));
-//  Serial.println("Pressure: " + String(board.Pressure()));
-//  Serial.println("Altitude: " + String(board.Altitude()));
-//  delay(1000);
-//  stepperLeft.enable();
-//  //stepperRight.enable();
-//  digitalWrite(13, LOW);
-//  stepperLeft.move(20000);
-//  //stepperRight.move(10000);
-//  stepperLeft.disable();
-//  //stepperRight.disable();
-//  delay(10000);
-//  stepperLeft.enable();
-//  //stepperRight.enable();
-//  digitalWrite(13, HIGH);
-//  stepperLeft.move(20000);
-//  //stepperRight.move(10000);
-//  stepperLeft.disable();
-//  //stepperRight.disable();
-}
-
-
-
-
-
-// Needed abstractions
-// Data
-// Sensors
-// Motion
-// collect
-// photograph
 
 // Data
 // Used to communicate with the outside world, through radio,
 // or other serial connections
-
-// Sensors
-// reads from accel, baro, and voltages from desired locations
-// produces ints for each desired value
-// will have functions to produce different requirements such as XAccel, or Battery voltage
-
-// Motion
-// routines for the movement of the rover, mainly flipping
-// will involve calls to the Sensor Class
-
-// Collect
-// controlls the mechanism for collecting the soil sample
-
-// Photograph
-// controlls the phtograph taking part of the mission
-// including calls to the Motion Class
-
-
-
-
-
-
