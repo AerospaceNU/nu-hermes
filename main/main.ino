@@ -9,17 +9,23 @@
 
 #define MICROSTEPS 1
 
-#define DIR_LEFT 8
-#define STEP_LEFT 9
+#define DIR_LEFT 4
+#define STEP_LEFT 5
 
-#define DIR_RIGHT 10
-#define STEP_RIGHT 11
+#define DIR_RIGHT 6
+#define STEP_RIGHT 22
 
-#define NICROME 5
+#define NICROME 9
 #define NICROME_DELAY 10000
 
 #define TEST_PIN_ONE 20
 #define TEST_PIN_TWO 21
+
+#define ANALOG_TEST_ONE A10
+#define ANALOG_TEST_TWO A11
+
+#define LEFT_SIDE 1
+#define RIGHT_SIDE 2
 
 DRV8834 stepperRight(MOTOR_STEPS, DIR_RIGHT, STEP_RIGHT);
 DRV8834 stepperLeft(MOTOR_STEPS, DIR_LEFT, STEP_LEFT);
@@ -44,6 +50,10 @@ void setup()
   // Starts up the altimiter and sets the current altitude as ground level
   board.InitAltimeter(10);
   digitalWrite(13, LOW);
+  stepperLeft.begin(RPM, MICROSTEPS);
+  stepperRight.begin(RPM, MICROSTEPS);
+
+  digitalWrite(TEST_PIN_ONE, HIGH);
 }
 
 void pinModeInitAll()
@@ -57,28 +67,36 @@ void pinModeInitAll()
 void loop() 
 {
 
-  switch (state)
+//  switch (state)
+//  {
+//    case 0:
+//      detectLaunch();
+//      break;
+//    
+//    case 1:
+//      detectGround();
+//      break;
+//
+//    case 2:
+//      breakNicrome();
+//      break;
+//
+//    case 3:
+//      roverMotion();
+//      break;
+//
+//    default:
+//      break;
+//  }
+
+  Serial.println(analogRead(ANALOG_TEST_ONE));
+
+  if (analogRead(ANALOG_TEST_ONE) < 30)
   {
-    case 0:
-      detectLaunch();
-      break;
-    
-    case 1:
-      detectGround();
-      break;
-
-    case 2:
-      breakNicrome();
-      break;
-
-    case 3:
-      roverMotion();
-      break;
-
-    default:
-      break;
+    Serial.println("Running Flip");
+    flipRover(1);
+    flipRover(2);
   }
-
   
   Serial.println(board.Altitude());
   Serial.println(board.XAccel());
@@ -145,7 +163,24 @@ void roverMotion()
 
 void flipRover(int side)
 {
-  
+  if (side == 1)
+  {
+    Serial.println("Flip Left");
+    stepperLeft.move(400);
+    delay(2000);
+    stepperLeft.move(-400);
+  }
+  else if (side == 2)
+  {
+    Serial.println("Flip Right");
+    stepperRight.move(400);
+    delay(2000);
+    stepperRight.move(-400);
+  }
+  else 
+  {
+    Serial.println("INVALID FLIPPER");
+  }
 }
 
 void detectGround()
