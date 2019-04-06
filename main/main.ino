@@ -1,19 +1,9 @@
-#include <BasicStepperDriver.h>
-#include <DRV8834.h>
 #include <Arduino.h>
 #include <Wire.h>
 #include "Sensors.h"
+#include "Motion.h"
 
-#define MOTOR_STEPS 200
-#define RPM 240
-
-#define MICROSTEPS 1
-
-#define DIR_LEFT 4
-#define STEP_LEFT 5
-
-#define DIR_RIGHT 6
-#define STEP_RIGHT 22
+#define DEBUG 1
 
 #define NICROME 9
 #define NICROME_DELAY 10000
@@ -24,11 +14,8 @@
 #define ANALOG_TEST_ONE A10
 #define ANALOG_TEST_TWO A11
 
-#define LEFT_SIDE 1
-#define RIGHT_SIDE 2
-
-DRV8834 stepperRight(MOTOR_STEPS, DIR_RIGHT, STEP_RIGHT);
-DRV8834 stepperLeft(MOTOR_STEPS, DIR_LEFT, STEP_LEFT);
+#define LEFT  1
+#define RIGHT 2
 
 Sensors board(19, 18);
 
@@ -37,21 +24,26 @@ int launchTime = 0;
 float previousAltitude = 0;
 float launchAltitude = 0;
 
+
 // this is the setup
 void setup() 
 {
+
+  #if DEBUG
   Serial.begin(9600);
   Serial.println("Begining");
+  #endif
+
+  initSteppers();
   pinModeInitAll();
   analogReference(EXTERNAL); // Sets the refrence for the ADC to the external source on pin AREF (on the inside of pin 23)
+
+  #if DEBUG
   Serial.println("Running");
-  delay(1000);
-  digitalWrite(13, HIGH);
-  // Starts up the altimiter and sets the current altitude as ground level
-  board.InitAltimeter(10);
-  digitalWrite(13, LOW);
-  stepperLeft.begin(RPM, MICROSTEPS);
-  stepperRight.begin(RPM, MICROSTEPS);
+  #endif
+  
+  delay(100);
+  board.init();
 
   digitalWrite(TEST_PIN_ONE, HIGH);
 }
@@ -89,21 +81,32 @@ void loop()
 //      break;
 //  }
 
+  #if DEBUG
   Serial.println(analogRead(ANALOG_TEST_ONE));
+  #endif
 
   if (analogRead(ANALOG_TEST_ONE) < 30)
   {
+    #if DEBUG
     Serial.println("Running Flip");
-    flipRover(1);
-    flipRover(2);
+    #endif
+    
+    flipRover(LEFT);
+    delay(500);
+    flipRover(RIGHT);
+    
   }
-  
+
+  #if DEBUG
   Serial.println(board.Altitude());
   Serial.println(board.XAccel());
   Serial.println(board.YAccel());
   Serial.println(board.ZAccel());
   Serial.println("TEST");
+  #endif
+  
   delay(500);
+  
 }
 
 // Setperate Rover using nicrome
@@ -134,54 +137,6 @@ void detectLaunch()
   return;
 }
 
-void roverMotion()
-{
-  float x, y, z;
-  x = board.XAccel();
-  y = board.YAccel();
-  z = board.ZAccel();
-  // 1 = x, 2 = y, 3 = z
-  int controlAccel = 0;
-
-  // two should be close to 0 and 1 close to 1
-  // this will determine which orentation the rover is in
-
-  if (x > 0.75 || x < -0.75)
-  {
-    controlAccel = x;
-  } 
-  else if (y > 0.75 || y < -0.75)
-  {
-    controlAccel = y;
-  } 
-  else if (z > 0.75 || z < -0.75)
-  {
-    controlAccel = z;
-  }
- 
-}
-
-void flipRover(int side)
-{
-  if (side == 1)
-  {
-    Serial.println("Flip Left");
-    stepperLeft.move(400);
-    delay(2000);
-    stepperLeft.move(-400);
-  }
-  else if (side == 2)
-  {
-    Serial.println("Flip Right");
-    stepperRight.move(400);
-    delay(2000);
-    stepperRight.move(-400);
-  }
-  else 
-  {
-    Serial.println("INVALID FLIPPER");
-  }
-}
 
 void detectGround()
 {

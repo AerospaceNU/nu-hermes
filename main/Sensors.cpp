@@ -18,6 +18,15 @@ Sensors::Sensors(int SdaPin, int SclPin)
   this->SclPin = SclPin;
 }
 
+void Sensors::init(){
+
+  digitalWrite(13, HIGH);
+  // Starts up the altimiter and sets the current altitude as ground level
+  this->InitAltimeter(10);
+  digitalWrite(13, LOW);
+  
+}
+
 float Sensors::XAccel() 
 {
   float voltage = Sensors::ADCCountToVoltage(analogRead(ACCEL_PIN_X));
@@ -57,7 +66,7 @@ void Sensors::InitAltimeter(float samplesToTake)
   if(!Altimeter.begin())
   {
     Serial.println("fail");
-    delay(1000000);
+    while(1);
   }
 
   float totalPressure = 0;
@@ -76,7 +85,34 @@ void Sensors::InitAltimeter(float samplesToTake)
 
   Altimeter.setSeaPressure(finalPressure); 
 }
-  
+
+void Sensors::roverMotion()
+{
+  float x, y, z;
+  x = this->XAccel();
+  y = this->YAccel();
+  z = this->ZAccel();
+  // 1 = x, 2 = y, 3 = z
+  int controlAccel = 0;
+
+  // two should be close to 0 and 1 close to 1
+  // this will determine which orentation the rover is in
+
+  if (x > 0.75 || x < -0.75)
+  {
+    controlAccel = x;
+  } 
+  else if (y > 0.75 || y < -0.75)
+  {
+    controlAccel = y;
+  } 
+  else if (z > 0.75 || z < -0.75)
+  {
+    controlAccel = z;
+  }
+ 
+}
+
 boolean Sensors::up()
 {
   //TODO:

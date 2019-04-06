@@ -4,6 +4,7 @@
 class Sensors {
   public: 
   Sensors(int SdaPin, int SclPin);
+  void init();
   float XAccel();
   float YAccel();
   float ZAccel();
@@ -12,6 +13,7 @@ class Sensors {
   float Direction();
   boolean up();
   void InitAltimeter(float samplesToTake);
+  void roverMotion();
   
   private:
   int SdaPin;
