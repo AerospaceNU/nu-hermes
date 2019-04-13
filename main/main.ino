@@ -174,14 +174,10 @@ void loop()
   if (digitalRead(TEST_PIN_ONE))
   {
     #ifdef DEBUG
-    Serial3.println("Running Flip");
+    Serial3.println("Running Nicrome & Flip");
     #endif
 
-    turnToPoint(LEFT, 175, 180);
-    turnToPoint(LEFT, 200, 0);
-    delay(500);
-    turnToPoint(RIGHT, 175, 180);
-    turnToPoint(RIGHT, 200, 0);
+    state = 2;
     
   }
 
