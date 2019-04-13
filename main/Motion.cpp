@@ -1,7 +1,7 @@
 #include "Motion.h"
 
 // potentiometer conversion factor in deg/LSB
-double POT_CONVERSION = 0.298;
+double POT_CONVERSION = 0.3115;
 
 int rightFlipperBias = 0;
 int leftFlipperBias = 0;
