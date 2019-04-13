@@ -60,7 +60,7 @@ void roverMotion()
       turnToPoint(RIGHT, 200, 0);
     }
 
-    delay(3500);
+    delay(2000);
   }
 }
 
