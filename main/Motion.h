@@ -1,25 +1,26 @@
 #ifndef MOTION_H
 #define MOTION_H
 
-#include <BasicStepperDriver.h>
-#include <DRV8834.h>
+#define rightA  4
+#define rightB  5
+#define leftA   6
+#define leftB   22
 
-#define MOTOR_STEPS 200
-#define RPM 320
+#define rightPot  A10
+#define leftPot   A11
 
-#define MICROSTEPS 1
+#define LEFT  1
+#define RIGHT 2
 
-#define DIR_LEFT 4
-#define STEP_LEFT 5
+#define MAX_PWM 255
 
-#define DIR_RIGHT 6
-#define STEP_RIGHT 22
+#include <arduino.h>
 
-#define LEFT_SIDE 1
-#define RIGHT_SIDE 2
+void turnToPoint(int side, int pwmSpeed, int angle);
+void turnToPointB(int pin, int pwmSpeed, int count);
+void turnToPointA(int pin, int pwmSpeed, int count);
+void rotateMotor(int pin, int pwmSpeed, int len);
 
 
-void initSteppers();
-void flipRover(int side);
 
 #endif
