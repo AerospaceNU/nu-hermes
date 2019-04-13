@@ -49,15 +49,15 @@ void roverMotion()
     Serial3.println(i);
     if ( i % 2)
     {
-      turnToPoint(LEFT, 175, 180);
+      turnToPoint(LEFT, 200, 180);
+      delay(1000);
       turnToPoint(LEFT, 200, 0);
-      delay(500);
     }
     else
     {
-      turnToPoint(RIGHT, 175, 180);
+      turnToPoint(RIGHT, 200, 180);
+      delay(1000);
       turnToPoint(RIGHT, 200, 0);
-      delay(500);
     }
 
     delay(3500);
